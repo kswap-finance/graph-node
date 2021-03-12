@@ -5626,7 +5626,7 @@ dependencies = [
 [[package]]
 name = "web3"
 version = "0.10.0-graph"
-source = "git+https://github.com/kswap-finance/rust-web3#e2ec6ba8ded4ce80480c3020df021df7273fb203"
+source = "git+https://github.com/kswap-finance/rust-web3#486baed9a829408f09d7e833fc38aad1d1b1a81e"
 dependencies = [
  "arrayvec",
  "base64 0.12.3",
