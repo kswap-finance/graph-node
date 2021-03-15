@@ -17,7 +17,7 @@ use fail::fail_point;
 lazy_static! {
     /// Maximum number of blocks to request in each chunk.
     static ref MAX_BLOCK_RANGE_SIZE: BlockNumber = std::env::var("GRAPH_ETHEREUM_MAX_BLOCK_RANGE_SIZE")
-        .unwrap_or("2000".into())
+        .unwrap_or("100".into())
         .parse::<BlockNumber>()
         .expect("invalid GRAPH_ETHEREUM_MAX_BLOCK_RANGE_SIZE");
 
