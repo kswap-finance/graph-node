@@ -1306,7 +1306,7 @@ where
         );
 
         // Return a stream that lazily loads batches of blocks.
-        debug!(logger, "Requesting {} block(s)", missing_blocks.len());
+        info!(logger, "====Requesting {} block(s)", missing_blocks.len());
         Box::new(
             self.load_blocks_rpc(logger.clone(), missing_blocks.into_iter().collect())
                 .collect()

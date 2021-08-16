@@ -957,12 +957,13 @@ pub async fn blocks_with_triggers(
             map
         });
 
-    debug!(logger, "Found {} relevant block(s)", block_hashes.len());
+    info!(logger, "====Found {} relevant block(s)", block_hashes.len());
 
     // Make sure `to` is included, even if empty.
     block_hashes.insert(to_hash);
     triggers_by_block.entry(to).or_insert(Vec::new());
 
+    info!(logger, "====before load_blocks");
     let mut blocks = adapter
         .load_blocks(logger1, chain_store, block_hashes)
         .and_then(
@@ -987,6 +988,7 @@ pub async fn blocks_with_triggers(
     // Unwrap: `blocks` always includes at least `to`.
     let first = blocks.first().unwrap().ethereum_block.number() as BlockNumber;
     let last = blocks.last().unwrap().ethereum_block.number() as BlockNumber;
+    info!(logger, "====after load_blocks, blocks count: {:?}, first: {:?}, last: {:?}", blocks.len(), first, last);
     if first < from {
         return Err(anyhow!(
             "block {} returned by the Ethereum node is before {}, the first block of the requested range",

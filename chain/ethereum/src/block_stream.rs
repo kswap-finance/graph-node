@@ -247,12 +247,12 @@ where
 
         let head_ptr = head_ptr_opt.unwrap();
 
-        trace!(
+        info!(
             ctx.logger, "Chain head pointer";
             "hash" => format!("{:?}", head_ptr.hash),
             "number" => &head_ptr.number
         );
-        trace!(
+        info!(
             ctx.logger, "Subgraph pointer";
             "hash" => format!("{:?}", subgraph_ptr.as_ref().map(|block| &block.hash)),
             "number" => subgraph_ptr.as_ref().map(|block| block.number),
@@ -410,7 +410,7 @@ where
                             let section = ctx.metrics.stopwatch.start_section("scan_blocks");
                             info!(
                                 ctx.logger,
-                                "Scanning blocks [{}, {}]", from, to;
+                                "====Scanning blocks [{}, {}]", from, to;
                                 "range_size" => range_size
                             );
                             Box::new(
@@ -612,7 +612,7 @@ impl<S: SubgraphStore, C: ChainStore> Stream for BlockStream<S, C> {
                                 total_triggers as f64 / block_range_size as f64;
                             self.ctx.previous_block_range_size = block_range_size;
                             if total_triggers > 0 {
-                                debug!(self.ctx.logger, "Processing {} triggers", total_triggers);
+                                info!(self.ctx.logger, "====Processing {} triggers", total_triggers);
                             }
 
                             // Switch to yielding state until next_blocks is depleted
@@ -629,18 +629,21 @@ impl<S: SubgraphStore, C: ChainStore> Stream for BlockStream<S, C> {
 
                             // Switch to idle
                             state = BlockStreamState::Idle;
+                            info!(self.ctx.logger, "====NextBlocks::Done");
 
                             // Poll for chain head update
                             continue;
                         }
 
                         Ok(Async::Ready(NextBlocks::Revert(block))) => {
+                            info!(self.ctx.logger, "====NextBlocks::Revert");
                             state = BlockStreamState::BeginReconciliation;
                             break Ok(Async::Ready(Some(BlockStreamEvent::Revert(block))));
                         }
 
                         Ok(Async::NotReady) => {
                             // Nothing to change or yield yet.
+                            info!(self.ctx.logger, "====NextBlocks::NotReady");
                             state = BlockStreamState::Reconciliation(next_blocks_future);
                             break Ok(Async::NotReady);
                         }
@@ -665,9 +668,13 @@ impl<S: SubgraphStore, C: ChainStore> Stream for BlockStream<S, C> {
 
                 // Yielding blocks from reconciliation process
                 BlockStreamState::YieldingBlocks(mut next_blocks) => {
+                    info!(self.ctx.logger, "====BlockStreamState::YieldingBlocks, count:{:?}", next_blocks.len());
                     match next_blocks.pop_front() {
                         // Yield one block
                         Some(next_block) => {
+                            let block = next_block.ethereum_block;
+                            let block_ptr = EthereumBlockPointer::from(&block);
+                            info!(self.ctx.logger, "====BlockStreamEvent::Block: {:?}, {:?}", block_ptr.number, block_ptr.hash);
                             state = BlockStreamState::YieldingBlocks(next_blocks);
                             break Ok(Async::Ready(Some(BlockStreamEvent::Block(next_block))));
                         }
